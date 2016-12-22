@@ -23,6 +23,8 @@
 // THE SOFTWARE.
 
 #import "AppDelegate.h"
+#import <Lock/Lock.h>
+#import <Lock/A0SafariAuthenticator.h>
 @interface AppDelegate ()
 
 @end
@@ -31,6 +33,12 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    [A0LockLogger logAll];
+    BOOL useUniversalLink = NO;
+    A0Lock *lock = [A0Lock sharedLock];
+    A0SafariAuthenticator *safari = [[A0SafariAuthenticator alloc] initWithLock:lock connectionName:@"google-oauth2" useUniversalLink:useUniversalLink];
+    [lock registerAuthenticators:@[safari]];
+    [lock applicationLaunchedWithOptions:launchOptions];
     return YES;
 }
 
@@ -55,5 +63,12 @@
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    return [[A0Lock sharedLock] handleURL:url sourceApplication:sourceApplication];
+}
 
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler {
+    A0Lock *lock = [A0Lock sharedLock];
+    return [lock continueUserActivity:userActivity restorationHandler:restorationHandler];
+}
 @end
